@@ -1,0 +1,75 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: prometheus
+  namespace: argocd
+  # This will Delete all the k8 resources created by this app
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - Delete=true
+
+  destination:
+    name: in-cluster
+    namespace: prometheus
+
+  source:
+    repoURL: https://prometheus-community.github.io/helm-charts
+    chart: prometheus
+    targetRevision: 15.5.3
+
+    helm:
+      valuesObject:
+        global:
+          scrape_interval: 5s
+          scrape_timeout: 3s
+        server:
+          service:
+            type: LoadBalancer
+            servicePort: 9090
+          podAnnotations:
+            "consul.hashicorp.com/connect-inject": "false"
+          readinessProbeInitialDelay: 0
+          securityContext:
+            runAsUser: 65534
+            runAsNonRoot: true
+            runAsGroup: 655
+          persistentVolume:
+            enabled: false
+        alertmanager:
+          enabled: false
+        nodeExporter:
+          enabled: false
+          podAnnotations:
+            "consul.hashicorp.com/connect-inject": "false"
+        pushgateway:
+          podAnnotations:
+            "consul.hashicorp.com/connect-inject": "false"
+        kube-state-metrics:
+          podAnnotations:
+            "consul.hashicorp.com/connect-inject": "false"
+        serviceAccounts:
+          alertmanager:
+            create: true
+            name:
+            annotations: { }
+          nodeExporter:
+            create: true
+            name:
+            annotations: { }
+          pushgateway:
+            create: true
+            name:
+            annotations: { }
+          server:
+            create: true
+            name:
+            annotations: { }
