@@ -12,9 +12,10 @@ spec:
           - path: 'apps/consul'
           - path: 'apps/grafana'
           - path: 'apps/vault'
+          - path: 'apps/prometheus'
   template:
     metadata:
-      name: '{{path.basename}}'
+      name: '{{path.basename}}-deployment'
     spec:
       project: default
       source:
