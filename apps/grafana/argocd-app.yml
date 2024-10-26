@@ -58,9 +58,6 @@ spec:
         podLabels:
           app: grafana
 
-        podAnnotations:
-          "consul.hashicorp.com/connect-inject": "false"
-
         service:
           type: LoadBalancer
           port: 3000

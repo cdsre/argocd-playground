@@ -53,9 +53,10 @@ spec:
           metrics:
             enabled: true
             provider: "prometheus"
-            baseURL: http://prometheus-server.default.svc.cluster.local
+            baseURL: http://prometheus-server.default.svc.cluster.local:9090
         connectInject:
           enabled: true
+          k8sDenyNamespaces: ["prometheus", "grafana"]
           metrics:
             defaultEnabled: true
           apiGateway:

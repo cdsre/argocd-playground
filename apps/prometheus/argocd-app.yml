@@ -35,8 +35,6 @@ spec:
           service:
             type: LoadBalancer
             servicePort: 9090
-          podAnnotations:
-            "consul.hashicorp.com/connect-inject": "false"
           readinessProbeInitialDelay: 0
           securityContext:
             runAsUser: 65534
@@ -48,14 +46,6 @@ spec:
           enabled: false
         nodeExporter:
           enabled: false
-          podAnnotations:
-            "consul.hashicorp.com/connect-inject": "false"
-        pushgateway:
-          podAnnotations:
-            "consul.hashicorp.com/connect-inject": "false"
-        kube-state-metrics:
-          podAnnotations:
-            "consul.hashicorp.com/connect-inject": "false"
         serviceAccounts:
           alertmanager:
             create: true

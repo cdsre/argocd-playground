@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: my-app-of-apps
+  namespace: argocd
+spec:
+  generators:
+    - git:
+        repoURL:  'https://github.com/cdsre/argocd-playground.git'
+        revision: 'main'
+        directories:
+          - path: 'apps/consul'
+          - path: 'apps/grafana'
+          - path: 'apps/vault'
+  template:
+    metadata:
+      name: '{{path.basename}}'
+    spec:
+      project: default
+      source:
+        repoURL: ' https://github.com/cdsre/argocd-playground.git'
+        targetRevision: 'main'
+        path: '{{path}}'
+      destination:
+        name: 'in-cluster'
+        namespace: '{{path.basename}}'
+      syncPolicy:
+        automated:
+          selfHeal: true
+          prune: true
