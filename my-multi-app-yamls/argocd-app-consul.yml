@@ -1,0 +1,67 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: consul
+  namespace: argocd
+  # This will Delete all the k8 resources created by this app
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - Delete=true
+
+  destination:
+    name: in-cluster
+    namespace: consul
+
+  source:
+    repoURL: https://helm.releases.hashicorp.com
+    chart: consul
+    targetRevision: 1.6.0
+
+    helm:
+      valuesObject:
+        global:
+          enabled: true
+          name: consul
+          datacenter: cdsre
+          tls:
+            enabled: true
+          acls:
+            enabled: true
+            manageSystemACLs: true
+          metrics:
+            enabled: true
+            enableAgentMetrics: true
+            agentMetricsRetentionTime: "1m"
+        server:
+          enabled: true
+          replicas: 1
+        ui:
+          enabled: true
+          service:
+            type: LoadBalancer
+            port:
+              https: 8501
+          metrics:
+            enabled: true
+            provider: "prometheus"
+            baseURL: http://prometheus-server.default.svc.cluster.local:9090
+        connectInject:
+          enabled: true
+          k8sDenyNamespaces: ["prometheus", "grafana"]
+          metrics:
+            defaultEnabled: true
+          apiGateway:
+            enabled: true
+            image: "hashicorp/consul-api-gateway:0.5.1"
+            managedGatewayClass:
+              serviceType: NodePort
+              useHostPorts: true

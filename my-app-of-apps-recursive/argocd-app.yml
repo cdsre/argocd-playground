@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: my-app-of-apps
+  namespace: argocd
+  # This will Delete all the k8 resources created by this app
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - Delete=true
+
+  destination:
+    name: in-cluster
+    namespace: argocd
+
+  source:
+    path: apps
+    repoURL: https://github.com/cdsre/argocd-playground
+    targetRevision: main
+    directory:
+      recurse: true
