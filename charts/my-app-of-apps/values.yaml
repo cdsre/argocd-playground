@@ -1,0 +1,145 @@
+consul:
+  global:
+    enabled: true
+    name: consul
+    datacenter: cdsre
+    tls:
+      enabled: true
+    acls:
+      enabled: true
+      manageSystemACLs: true
+    metrics:
+      enabled: true
+      enableAgentMetrics: true
+      agentMetricsRetentionTime: "1m"
+  server:
+    enabled: true
+    replicas: 1
+  ui:
+    enabled: true
+    service:
+      type: LoadBalancer
+      port:
+        https: 8501
+    metrics:
+      enabled: true
+      provider: "prometheus"
+      baseURL: http://prometheus-server.default.svc.cluster.local:9090
+  connectInject:
+    enabled: true
+    k8sDenyNamespaces: [ "prometheus", "grafana" ]
+    metrics:
+      defaultEnabled: true
+    apiGateway:
+      enabled: true
+      image: "hashicorp/consul-api-gateway:0.5.1"
+      managedGatewayClass:
+        serviceType: NodePort
+        useHostPorts: true
+
+prometheus:
+  global:
+    scrape_interval: 5s
+    scrape_timeout: 3s
+  server:
+    service:
+      type: LoadBalancer
+      servicePort: 9090
+    readinessProbeInitialDelay: 0
+    securityContext:
+      runAsUser: 65534
+      runAsNonRoot: true
+      runAsGroup: 655
+  alertmanager:
+    enabled: false
+  nodeExporter:
+    enabled: false
+  serviceAccounts:
+    alertmanager:
+      create: true
+      name:
+      annotations: { }
+    nodeExporter:
+      create: true
+      name:
+      annotations: { }
+    pushgateway:
+      create: true
+      name:
+      annotations: { }
+    server:
+      create: true
+      name:
+      annotations: { }
+grafana:
+  env:
+    GF_EXPLORE_ENABLED: true
+    GF_PANELS_DISABLE_SANITIZE_HTML: true
+    GF_LOG_FILTERS: rendering:debug
+    GF_DATE_FORMATS_USE_BROWSER_LOCALE: true
+    GF_DATE_FORMATS_FULL_DATE: "MMM Do, YYYY hh:mm:ss a"
+    GF_DATE_FORMATS_INTERVAL_SECOND: "hh:mm:ss a"
+    GF_DATE_FORMATS_INTERVAL_MINUTE: "hh:mm a"
+    GF_DATE_FORMATS_INTERVAL_HOUR: "DD/MM hh:mm a"
+    GF_DATE_FORMATS_INTERVAL_DAY: "DD/MM"
+    GF_DATE_FORMATS_INTERVAL_MONTH: "MM-YYYY"
+    GF_DATE_FORMATS_INTERVAL_YEAR: "YYYY"
+    GF_AUTH_ANONYMOUS_ENABLED: true
+    GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+    GF_AUTH_DISABLE_LOGIN_FORM: true
+
+  persistence:
+    enabled: true
+
+  rbac:
+    create: false
+    pspEnabled: false
+
+  # Disable test pods
+  testFramework:
+    enabled: false
+
+  podLabels:
+    app: grafana
+
+  service:
+    type: LoadBalancer
+    port: 3000
+
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          orgId: 1
+          url: http://prometheus-server.default.svc.cluster.local:9090
+          access: proxy
+          isDefault: false
+          jsonData:
+            timeInterval: 5s
+          editable: true
+
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: 'default'
+          orgId: 1
+          folder: ''
+          type: file
+          disableDeletion: false
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/default
+
+vault:
+  global:
+    enabled: true
+    namespace: vault
+    tlsDisable: true
+  injector:
+    enabled: false
+  ui:
+    enabled: true
+    serviceType: "LoadBalancer"
