@@ -40,8 +40,6 @@ spec:
             runAsUser: 65534
             runAsNonRoot: true
             runAsGroup: 655
-          persistentVolume:
-            enabled: false
         alertmanager:
           enabled: false
         nodeExporter:
